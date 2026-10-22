@@ -110,6 +110,35 @@ class Question(db.Model):
 
         # Dynamic fallback inference if question_type wasn't stored
         q_type = self.question_type or ('coding' if any(w in self.question_text.lower() for w in ['write a function', 'write a program', 'write code', 'write a query', 'implement', 'algorithm', 'two sum', 'linked list', 'binary tree', 'sql query', 'leetcode']) else 'theory')
+
+        # Market-calibrated time limits in seconds based on difficulty and domain:
+        # Coding: Beginner/Easy 15m (900s), Intermediate 20m (1200s), Advanced/Hard 30m (1800s)
+        # System Design: 10m (600s)
+        # Theory: Beginner 3m (180s), Intermediate 4m (240s), Advanced 5m (300s)
+        # Behavioral: 3m (180s)
+        diff_lower = (self.difficulty or 'intermediate').lower()
+        cat_lower = (self.category or '').lower()
+        text_lower = (self.question_text or '').lower()
+        
+        if q_type == 'coding':
+            if diff_lower in ('beginner', 'easy') or 'sql' in cat_lower or 'sql' in text_lower:
+                time_limit = 900
+            elif diff_lower in ('advanced', 'hard'):
+                time_limit = 1800
+            else:
+                time_limit = 1200
+        elif 'system design' in cat_lower or 'architecture' in cat_lower or 'system design' in text_lower:
+            time_limit = 600
+        elif q_type in ('behavioral', 'hr') or 'hr' in cat_lower or 'behavioral' in cat_lower:
+            time_limit = 180
+        else:
+            if diff_lower in ('advanced', 'hard'):
+                time_limit = 300
+            elif diff_lower in ('beginner', 'easy'):
+                time_limit = 180
+            else:
+                time_limit = 240
+
         return {
             'id': self.id,
             'interview_id': self.interview_id,
@@ -120,6 +149,7 @@ class Question(db.Model):
             'question_type': q_type,
             'starter_code': sc,
             'test_cases': tc,
+            'time_limit': time_limit,
             'answer': self.answer.to_dict() if self.answer else None
         }
 

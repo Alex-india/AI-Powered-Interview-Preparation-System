@@ -69,7 +69,7 @@ export default function InterviewSetup({ setView, selectedType, onStartInterview
       question: "Write a SQL query to find the second highest salary from an Employee table.",
       question_type: "coding",
       starter_code: {
-        sql: "SELECT MAX(salary) AS SecondHighestSalary\nFROM Employee\nWHERE salary < (SELECT MAX(salary) FROM Employee);"
+        sql: "-- Write your SQL query here\nSELECT \n;\n"
       },
       test_cases: [
         { input: "Employee with salaries [100, 200, 300]", expected: "200" }

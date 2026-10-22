@@ -453,7 +453,7 @@ def get_questions_by_company(company_id=None):
                 "difficulty": cc["difficulty"],
                 "company": "Coding Challenge",
                 "question_type": "coding",
-                "starter_code": cc.get("starter_code", ""),
+                "starter_code": cc.get("starter_codes") or cc.get("starter_code", ""),
                 "test_cases": cc.get("test_cases", [])
             })
         return all_q
@@ -472,7 +472,7 @@ def get_questions_by_company(company_id=None):
                 "difficulty": cc["difficulty"],
                 "company": "Coding Challenge",
                 "question_type": "coding",
-                "starter_code": cc.get("starter_code", ""),
+                "starter_code": cc.get("starter_codes") or cc.get("starter_code", ""),
                 "test_cases": cc.get("test_cases", [])
             }
             for cc in CODING_CHALLENGES

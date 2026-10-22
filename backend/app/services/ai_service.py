@@ -232,12 +232,13 @@ class AIService:
             random.shuffle(available_coding)
             chosen_coding = available_coding[:coding_needed]
             for q in chosen_coding:
+                starter = q.get("starter_codes") or q.get("starter_code") or "def solution():\n    pass\n"
                 selected_questions.append({
                     "question": q["question"],
                     "category": q.get("category", "Coding Challenge"),
                     "difficulty": q.get("difficulty", difficulty),
                     "question_type": "coding",
-                    "starter_code": q.get("starter_code", "def solution():\n    pass\n"),
+                    "starter_code": starter,
                     "test_cases": q.get("test_cases", []),
                     "evaluation_points": ["Algorithmic correctness", "Optimal Time & Space complexity", "Edge cases handling"]
                 })
@@ -301,14 +302,14 @@ class AIService:
                 })
 
         # Pad with coding challenges if still short
-        while len(selected_questions) < count:
             filler = random.choice(CODING_CHALLENGES)
+            filler_starter = filler.get("starter_codes") or filler.get("starter_code") or ""
             selected_questions.append({
                 "question": filler["question"],
                 "category": filler.get("category", "Algorithms & Coding"),
                 "difficulty": filler.get("difficulty", difficulty),
                 "question_type": "coding",
-                "starter_code": filler.get("starter_code", ""),
+                "starter_code": filler_starter,
                 "test_cases": filler.get("test_cases", []),
                 "evaluation_points": ["Correctness", "Complexity", "Code style"]
             })
@@ -452,7 +453,7 @@ class AIService:
         if avg_clarity < 7.0:
             weaknesses.append("Practice concise explanation frameworks (Problem -> Approach -> Complexity)")
         if avg_overall < 7.0:
-            weaknesses.append("Strengthen answer completeness and speed under 120-second time limits")
+            weaknesses.append("Strengthen answer completeness and speed under timed interview limits")
         if not weaknesses:
             weaknesses.append("Explore advanced system design scalability patterns (e.g. distributed caches, sharding)")
             weaknesses.append("Fine-tune verbal delivery to explain trade-offs even more concisely")

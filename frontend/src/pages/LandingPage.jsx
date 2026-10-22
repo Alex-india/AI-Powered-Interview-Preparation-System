@@ -60,7 +60,7 @@ export default function LandingPage({ setView, currentUser, setSelectedType }) {
               </span>
             </h1>
             <p className="text-sm sm:text-lg text-slate-600 dark:text-slate-350 max-w-2xl mx-auto leading-relaxed">
-              Experience realistic mock interviews under a 120-second timer. Dictate answers using real-time speech recognition, receive granular 4-dimensional scoring, and follow a personalized 7-day study plan.
+              Experience realistic mock interviews under market-calibrated timers tailored to problem difficulty (up to 30 mins for coding, 3-5 mins for theory). Dictate answers using real-time speech recognition, receive granular 4-dimensional scoring, and follow a personalized 7-day study plan.
             </p>
           </div>
 
@@ -86,7 +86,7 @@ export default function LandingPage({ setView, currentUser, setSelectedType }) {
           {/* Key Specs Pills */}
           <div className="pt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl mx-auto">
             {[
-              { label: '120s Question Timer', desc: 'Timed circular countdown', icon: Clock },
+              { label: 'Adaptive Question Timer', desc: 'Difficulty-scaled countdown', icon: Clock },
               { label: 'Voice & Speech Dictation', desc: 'Native browser speech API', icon: Mic },
               { label: '4-Measure Scoring', desc: 'Correctness, Clarity, Depth', icon: Award },
               { label: 'Dual AI Engines', desc: 'Gemini live & offline bank', icon: Zap }
@@ -217,7 +217,7 @@ export default function LandingPage({ setView, currentUser, setSelectedType }) {
               {
                 step: '02',
                 title: 'Timed Interview Chamber',
-                desc: 'Face one question at a time with a 120-second circular SVG countdown. Listen to questions read aloud via Web Speech synthesis and dictate answers using microphone speech-to-text.',
+                desc: 'Face one question at a time with a market-calibrated circular SVG countdown tailored to problem difficulty. Listen to questions read aloud via Web Speech synthesis and dictate answers using microphone speech-to-text.',
                 icon: Clock
               },
               {

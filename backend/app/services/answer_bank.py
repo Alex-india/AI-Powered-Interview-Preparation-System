@@ -709,6 +709,18 @@ def get_verified_model_answer(question_text: str, category: str = "", question_t
     q_lower = (question_text or "").lower()
     cat_lower = (category or "").lower()
 
+    # 0. Check verified CODING_CHALLENGES database
+    try:
+        from app.services.coding_questions import CODING_CHALLENGES
+        for cc in CODING_CHALLENGES:
+            title_lower = cc.get("title", "").lower()
+            q_id = cc.get("id", "").lower()
+            if (title_lower and title_lower in q_lower) or (q_id and q_id in q_lower):
+                if cc.get("reference_solution"):
+                    return f"### Optimal Verified Solution for: {cc['title']}\n\n{cc['reference_solution']}"
+    except Exception:
+        pass
+
     # 1. Exact or keyword match in verified database
     for key, answer in VERIFIED_ANSWERS.items():
         if key in q_lower:
@@ -1021,9 +1033,33 @@ def evaluate_smart_submission(
             }
 
     if actual_is_coding:
-        code_lines = [l for l in clean_ans.split('\n') if l.strip()]
+        # Strip code markdown block wrappers if present (e.g. ```python ... ```)
+        cleaned_code = clean_ans
+        if "```" in cleaned_code:
+            code_match = re.search(r'```(?:[a-zA-Z0-9_\-\+]+)?\s*([\s\S]*?)```', cleaned_code)
+            if code_match:
+                cleaned_code = code_match.group(1).strip()
+            else:
+                cleaned_code = cleaned_code.replace("```", "").strip()
+
+        # Check if candidate submitted blank code
+        if not cleaned_code or len(cleaned_code) < 5:
+            return {
+                "overall_score": 0.0,
+                "correctness": 0.0,
+                "relevance": 0.0,
+                "clarity": 0.0,
+                "completeness": 0.0,
+                "feedback": "❌ **No Code Submitted**: You submitted an empty code editor. Please implement the solution before submitting.",
+                "ideal_answer": ideal_ans
+            }
+
+        # Strip comments to inspect raw logic body
+        code_no_comments = re.sub(r'#.*|//.*|/\*[\s\S]*?\*/|"""[\s\S]*?"""|\'\'\'[\s\S]*?\'\'\'', '', cleaned_code).strip()
+        meaningful_lines = [l.strip() for l in code_no_comments.split('\n') if l.strip()]
+
         # If candidate wrote non-code plain text for a coding challenge
-        if not has_code_syntax and len(code_lines) < 2:
+        if not has_code_syntax and len(meaningful_lines) < 2:
             return {
                 "overall_score": 2.0,
                 "correctness": 1.0,
@@ -1034,15 +1070,23 @@ def evaluate_smart_submission(
                 "ideal_answer": ideal_ans
             }
 
-        # Check for placeholder/empty functions (e.g. `def solution(): pass`)
-        if any(dummy in clean_ans for dummy in ['pass', 'return null', 'return None', 'return []', 'return 0']) and len(code_lines) <= 3:
+        # Check for placeholder/empty functions (e.g. `def solution(): pass` or empty braces or stub return)
+        is_starter_skeleton = False
+        if len(meaningful_lines) <= 2:
+            is_starter_skeleton = True
+        elif len(meaningful_lines) <= 5 and any(dummy in code_no_comments for dummy in ['pass', 'return null', 'return None', 'return []', 'return 0', 'return -1', 'return {}', 'return false', 'return true']):
+            has_algorithm = any(re.search(r'\b(for|while|if|else|elif|let|const|var|\+=|-=|\*=)\b', l) for l in meaningful_lines if not l.startswith(('def ', 'function', 'class ')))
+            if not has_algorithm:
+                is_starter_skeleton = True
+
+        if is_starter_skeleton:
             return {
-                "overall_score": 2.0,
-                "correctness": 1.5,
-                "relevance": 3.0,
-                "clarity": 3.0,
+                "overall_score": 1.5,
+                "correctness": 1.0,
+                "relevance": 2.0,
+                "clarity": 2.5,
                 "completeness": 1.0,
-                "feedback": "⚠️ **Incomplete Implementation**: The submitted code contains only a function skeleton or default return statement without core algorithmic logic or test case handling.",
+                "feedback": "❌ **Unimplemented Solution / Starter Template Submitted**: The submission contains only the initial template boilerplate or placeholder stub without the required algorithmic logic. In an interview, submitting skeleton code without implementation is evaluated as incomplete.",
                 "ideal_answer": ideal_ans
             }
 
